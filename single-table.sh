@@ -1,5 +1,5 @@
 #!/bin/bash
-tables_list=$(aws dynamodb list-tables --profile ebs)
+tables_list=$(aws dynamodb list-tables)
 date
 # Splitting prod and uat tables into separate array
 echo -e "\n\nSplitting prod and uat tables into separate array"
@@ -29,17 +29,17 @@ echo -e "Source and dest tables are splitted into respective arrays"
 # cleaning uat tables
 
 # copying tables content from prod to uat...
-echo -e "\n\ncopying tables content from prod to uat..."
+echo -e "\n\ncopying tables content from src to destination..."
 table_flag=0
 if [ $src_table_count == $dest_table_count ]; then
-    echo -e "\nTables count are equal for prod and uat"
+    echo -e "\nTables count are equal for src and dest"
     while (( $table_flag < $src_table_count ))
     do    
         IFS='-' read -ra src <<< "${src_table[$table_flag]}"
         IFS='-' read -ra dest <<< "${dest_table[$table_flag]}"
         if [ ${src[4]} == ${dest[4]} -a ${src[4]} == "$1" ]; then
             echo -e "\n\ncopy ${src_table[$table_flag]} table contents to ${dest_table[$table_flag]} table"
-            scan=$(aws dynamodb scan --table-name ${src_table[$table_flag]} --max-items 500 --profile ebs)
+            scan=$(aws dynamodb scan --table-name ${src_table[$table_flag]} --max-items 500)
             next_token=$( echo $scan | jq .NextToken)
             echo -e "scaning ${src_table[$table_flag]} table one set completed..."
             set_count=0
@@ -49,14 +49,14 @@ if [ $src_table_count == $dest_table_count ]; then
                 item=$(echo $scan | jq .Items[$i])
                 while [ "$item" != "null" ]
                 do
-                    aws dynamodb put-item --table-name ${dest_table[$table_flag]} --item "$item" --profile ebs
+                    aws dynamodb put-item --table-name ${dest_table[$table_flag]} --item "$item"
                     set_count=$(( set_count+1 ))
                     echo -ne "Copied item: "$set_count '\r'
                     i=$(( i+1 ))
                     item=$(echo $scan | jq .Items[$i])
                 done
                 echo -e "Wrote ${src_table[$table_flag]} table one set"
-                scan=$(aws dynamodb scan --table-name ${src_table[$table_flag]} --max-items 500 --starting-token $next_token --profile ebs)
+                scan=$(aws dynamodb scan --table-name ${src_table[$table_flag]} --max-items 500 --starting-token $next_token)
                 next_token=$( echo $scan | jq .NextToken)  
                 echo -e "scaning ${src_table[$table_flag]} table another set completed..."
 
@@ -65,7 +65,7 @@ if [ $src_table_count == $dest_table_count ]; then
             item=$(echo $scan | jq .Items[$i])
             while [ "$item" != "null" ]
             do
-                aws dynamodb put-item --table-name ${dest_table[$table_flag]} --item "$item" --profile ebs
+                aws dynamodb put-item --table-name ${dest_table[$table_flag]} --item "$item"
                 set_count=$(( set_count+1 ))
                 echo -ne "Copied item: "$set_count '\r'
                 i=$(( i+1 ))
