@@ -11,5 +11,5 @@
   6. Students - 1665
   
   
-  #For multi table 
+# For multi table 
 ./multi-table.sh
