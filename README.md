@@ -1,7 +1,7 @@
 # ebs-sam-to-cf
 
 # For single-table
-./single-table.sh <Table Name>
+./single-table.sh Table_Name
   
   1. Attendees - 1692
   2. MeetingStatus - 1209
